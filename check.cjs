@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {newSession,update,artwork}=require('./model.js');
+const s=newSession();
+const act=(a,v)=>update(s,a,v);
+act('move',10);assert.deepEqual(s.offsets,[0,0]);
+act('layout',1);act('select');act('move',-10);
+assert.deepEqual(s.offsets,[0,-10]);
+const removeTitle=svg=>svg.replace(/<g data-title=.*?<\/g>/,'');
+assert.equal(removeTitle(artwork(1,0,true)),removeTitle(artwork(1,-10,true)));
+act('move',-10);act('move',-10);assert.deepEqual(s.history[1],[0,-10]);
+act('undo');assert.equal(s.offsets[1],-10);
+act('browse');act('layout',0);assert.equal(s.offsets[0],0);
+act('layout',1);assert.equal(s.offsets[1],-10);act('select');act('undo');
+assert.equal(artwork(1,s.offsets[1]),artwork(1,0));
+act('undo');assert.equal(s.offsets[1],0);
+console.log('Passed: mode guard, local move, stable artwork, limit, undo, variant isolation and return.');
