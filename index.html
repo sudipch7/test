@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offset poster studio</title>
+<style>
+*{box-sizing:border-box}body{background:#f8f7f3;color:#20223a;font:16px/1.5 system-ui,sans-serif;margin:0}main{max-width:920px;margin:auto;padding:32px 22px}h1{font:600 clamp(32px,6vw,58px)/1 Georgia,serif;margin:8px 0 16px}button{padding:9px 13px;background:white;color:#20223a;border:1px solid #7f8091;border-radius:5px;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible{outline:3px solid #7741ba}button[aria-pressed=true]{background:#26283e;color:white}svg{display:block;width:100%}section{border-top:1px solid #b7b7bb;padding:16px 0}#poster{max-width:620px;margin:12px 0}.controls{display:flex;gap:9px;flex-wrap:wrap}h2{margin:0 0 8px;font-size:21px}p{margin:8px 0 16px}[hidden]{display:none!important}
+</style><main><h1>Offset poster studio</h1><p>Explore two compositions for the same print-room event. Select the title to adjust its position.</p><section><h2 id="mode"></h2><div class="controls" id="variants"><button id="orbit">Orbit</button><button id="relay">Relay</button></div><div id="poster" role="group" aria-label="Event poster preview"></div><div class="controls"><button id="select">Select title</button><button id="up">Move up</button><button id="down">Move down</button><button id="undo">Undo move</button><button id="browse">Back to layouts</button></div><p role="status" id="status"></p></section></main>
+<script src="model.js"></script><script>
+const state=newSession(), el=id=>document.getElementById(id);
+function render(){
+  const {active,selected,offsets,history}=state;
+  el('mode').textContent=selected?'Refine title':'Explore layouts';
+  el('variants').hidden=selected;el('select').hidden=selected;
+  for(const id of ['up','down','undo','browse'])el(id).hidden=!selected;
+  el('up').disabled=offsets[active]===-20;el('down').disabled=offsets[active]===20;el('undo').disabled=!history[active].length;
+  ['orbit','relay'].forEach((id,i)=>el(id).setAttribute('aria-pressed',i===active));
+  el('poster').innerHTML=artwork(active,offsets[active],selected);
+  el('status').textContent=layouts[active].name+' · Title offset '+offsets[active]+' units.'+(selected?' Only the title moves.':' Select the title on the poster or use the button.');
+}
+function act(action,value){
+  const wasSelected=state.selected;
+  update(state,action,value);render();
+  if(wasSelected!==state.selected)el(state.selected?'browse':'select').focus();
+}
+el('poster').onclick=e=>{if(e.target.closest('[data-title]'))act('select')};
+el('select').onclick=()=>act('select');el('browse').onclick=()=>act('browse');
+el('orbit').onclick=()=>act('layout',0);el('relay').onclick=()=>act('layout',1);
+el('up').onclick=()=>act('move',-10);el('down').onclick=()=>act('move',10);el('undo').onclick=()=>act('undo');
+render();
+</script></html>
